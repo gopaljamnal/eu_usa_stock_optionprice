@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option Pricing Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container-fluid px-4">
+        <h1 class="text-center my-4">Option Pricing Calculator</h1>
+
+        <div class="row">
+            <!-- European Option Panel -->
+            <div class="col-md-6">
+                <div class="option-container european-container">
+                    <h2 class="text-center mb-3">European Options</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="mb-0">Input Parameters</h4>
+                                </div>
+                                <div class="card-body">
+                                    <form id="european-form">
+                                        <div class="mb-3">
+                                            <label for="euro-S0" class="form-label">Initial Stock Price (S₀):</label>
+                                            <input type="number" class="form-control" id="euro-S0" name="S0" value="100" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="euro-E" class="form-label">Strike Price (E):</label>
+                                            <input type="number" class="form-control" id="euro-E" name="E" value="100" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="euro-T" class="form-label">Time to Maturity (T) in years:</label>
+                                            <input type="number" class="form-control" id="euro-T" name="T" value="1" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="euro-rf" class="form-label">Risk-Free Rate (rf):</label>
+                                            <input type="number" class="form-control" id="euro-rf" name="rf" value="0.05" step="0.001" required>
+                                            <small class="text-muted">Enter as decimal (e.g., 0.05 for 5%)</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="euro-sigma" class="form-label">Volatility (σ):</label>
+                                            <input type="number" class="form-control" id="euro-sigma" name="sigma" value="0.2" step="0.01" required>
+                                            <small class="text-muted">Enter as decimal (e.g., 0.2 for 20%)</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="euro-iterations" class="form-label">Number of Iterations:</label>
+                                            <input type="number" class="form-control" id="euro-iterations" name="iterations" value="10000" step="1000" min="1000" required>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary w-100">Calculate European</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card result-card mb-4" id="euro-call-card">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0">Call Option</h5>
+                                        </div>
+                                        <div class="card-body text-center py-4">
+                                            <p class="mb-1">Value</p>
+                                            <div class="result-value" id="euro-call-result">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="card result-card mb-4" id="euro-put-card">
+                                        <div class="card-header bg-danger text-white">
+                                            <h5 class="mb-0">Put Option</h5>
+                                        </div>
+                                        <div class="card-body text-center py-4">
+                                            <p class="mb-1">Value</p>
+                                            <div class="result-value" id="euro-put-result">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">About European Options</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>European options can only be exercised at expiration date.</p>
+                                    <p>This calculator uses Monte Carlo simulation with:</p>
+                                    <ul>
+                                        <li>Geometric Brownian motion model</li>
+                                        <li>Risk-neutral valuation</li>
+                                    </ul>
+                                    <p class="mb-0 text-muted"><small>Higher iterations improve accuracy.</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- American Option Panel -->
+            <div class="col-md-6">
+                <div class="option-container american-container">
+                    <h2 class="text-center mb-3">American Options</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header bg-dark text-white">
+                                    <h4 class="mb-0">Input Parameters</h4>
+                                </div>
+                                <div class="card-body">
+                                    <form id="american-form">
+                                        <div class="mb-3">
+                                            <label for="amer-S0" class="form-label">Initial Stock Price (S₀):</label>
+                                            <input type="number" class="form-control" id="amer-S0" name="S0" value="100" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-K" class="form-label">Strike Price (K):</label>
+                                            <input type="number" class="form-control" id="amer-K" name="K" value="100" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-T" class="form-label">Time to Maturity (T) in years:</label>
+                                            <input type="number" class="form-control" id="amer-T" name="T" value="1" step="0.01" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-r" class="form-label">Risk-Free Rate (r):</label>
+                                            <input type="number" class="form-control" id="amer-r" name="r" value="0.05" step="0.001" required>
+                                            <small class="text-muted">Enter as decimal (e.g., 0.05 for 5%)</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-sigma" class="form-label">Volatility (σ):</label>
+                                            <input type="number" class="form-control" id="amer-sigma" name="sigma" value="0.2" step="0.01" required>
+                                            <small class="text-muted">Enter as decimal (e.g., 0.2 for 20%)</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-steps" class="form-label">Number of Time Steps:</label>
+                                            <input type="number" class="form-control" id="amer-steps" name="steps" value="50" step="10" min="10" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="amer-simulations" class="form-label">Number of Simulations:</label>
+                                            <input type="number" class="form-control" id="amer-simulations" name="simulations" value="1000" step="100" min="100" required>
+                                            <small class="text-muted">Higher values increase accuracy but take longer</small>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-dark w-100">Calculate American</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card result-card mb-4" id="amer-call-card">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0">Call Option</h5>
+                                        </div>
+                                        <div class="card-body text-center py-4">
+                                            <p class="mb-1">Value</p>
+                                            <div class="result-value" id="amer-call-result">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="card result-card mb-4" id="amer-put-card">
+                                        <div class="card-header bg-danger text-white">
+                                            <h5 class="mb-0">Put Option</h5>
+                                        </div>
+                                        <div class="card-body text-center py-4">
+                                            <p class="mb-1">Value</p>
+                                            <div class="result-value" id="amer-put-result">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">About American Options</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>American options can be exercised at any time before expiration.</p>
+                                    <p>This calculator uses a Least Squares Monte Carlo approach with:</p>
+                                    <ul>
+                                        <li>Early exercise opportunity at each time step</li>
+                                        <li>Backward induction to determine optimal exercise</li>
+                                    </ul>
+                                    <p class="mb-0 text-muted"><small>More steps and simulations improve accuracy.</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3 mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Option Pricing Comparison</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>European vs. American Options:</p>
+                        <ul>
+                            <li><strong>European Options:</strong> Can only be exercised at expiration date.</li>
+                            <li><strong>American Options:</strong> Can be exercised at any time before or at expiration.</li>
+                        </ul>
+                        <p>Due to the early exercise feature, American options are typically more valuable than their European counterparts, especially for put options on dividend-paying stocks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // European Option Form Submission
+            $('#european-form').on('submit', function(e) {
+                e.preventDefault();
+
+                // Show loading state
+                $('#euro-call-result, #euro-put-result').text('Calculating...');
+
+                $.ajax({
+                    url: '/calculate/european',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            // Update results
+                            $('#euro-call-result').text('$' + data.call_price);
+                            $('#euro-put-result').text('$' + data.put_price);
+
+                            // Highlight results
+                            $('#euro-call-card, #euro-put-card').addClass('border-primary');
+                            setTimeout(function() {
+                                $('#euro-call-card, #euro-put-card').removeClass('border-primary');
+                            }, 1000);
+                        } else {
+                            alert('Error: ' + data.error);
+                            $('#euro-call-result, #euro-put-result').text('Error');
+                        }
+                    },
+                    error: function() {
+                        alert('Server error occurred. Please try again.');
+                        $('#euro-call-result, #euro-put-result').text('Error');
+                    }
+                });
+            });
+
+            // American Option Form Submission
+            $('#american-form').on('submit', function(e) {
+                e.preventDefault();
+
+                // Show loading state
+                $('#amer-call-result, #amer-put-result').text('Calculating...');
+
+                $.ajax({
+                    url: '/calculate/american',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            // Update results
+                            $('#amer-call-result').text('$' + data.call_price);
+                            $('#amer-put-result').text('$' + data.put_price);
+
+                            // Highlight results
+                            $('#amer-call-card, #amer-put-card').addClass('border-primary');
+                            setTimeout(function() {
+                                $('#amer-call-card, #amer-put-card').removeClass('border-primary');
+                            }, 1000);
+                        } else {
+                            alert('Error: ' + data.error);
+                            $('#amer-call-result, #amer-put-result').text('Error');
+                        }
+                    },
+                    error: function() {
+                        alert('Server error occurred. Please try again.');
+                        $('#amer-call-result, #amer-put-result').text('Error');
+                    }
+                });
+            });
+
+            // Copy European values to American form
+            $('#copy-euro-to-amer').on('click', function() {
+                $('#amer-S0').val($('#euro-S0').val());
+                $('#amer-K').val($('#euro-E').val());
+                $('#amer-T').val($('#euro-T').val());
+                $('#amer-r').val($('#euro-rf').val());
+                $('#amer-sigma').val($('#euro-sigma').val());
+            });
+        });
+    </script>
+</body>
+</html>
